@@ -404,7 +404,10 @@ func (q *DelayQueue) callback(idStr string) error {
 		// Is an IO error?
 		return fmt.Errorf("get message payload failed: %v", err)
 	}
-	ack := q.cb(payload)
+	var ack = true
+	if q.cb != nil {
+		ack = q.cb(payload)
+	}
 	if ack {
 		err = q.ack(idStr)
 	} else {
