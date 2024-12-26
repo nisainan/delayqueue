@@ -340,7 +340,7 @@ func (q *DelayQueue) pending2Ready() error {
 	now := time.Now().Unix()
 	keys := []string{q.pendingKey, q.readyKey}
 	raw, err := q.eval(pending2ReadyScript, keys, []interface{}{now})
-	if err != nil && err != NilErr {
+	if err != nil && !errors.Is(err, NilErr) {
 		return fmt.Errorf("pending2ReadyScript failed: %v", err)
 	}
 	count, ok := raw.(int64)
@@ -364,7 +364,7 @@ func (q *DelayQueue) ready2Unack() (string, error) {
 	retryTime := time.Now().Add(q.maxConsumeDuration).Unix()
 	keys := []string{q.readyKey, q.unAckKey}
 	ret, err := q.eval(ready2UnackScript, keys, []interface{}{retryTime})
-	if err == NilErr {
+	if errors.Is(err, NilErr) {
 		return "", err
 	}
 	if err != nil {
@@ -417,7 +417,8 @@ func (q *DelayQueue) callback(idStr string) error {
 }
 
 func (q *DelayQueue) Remove(idStr string) error {
-	return q.callback(idStr)
+	//return q.callback(idStr)
+	return q.ack(idStr)
 }
 
 func (q *DelayQueue) ack(idStr string) error {
