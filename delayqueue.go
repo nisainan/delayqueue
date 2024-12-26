@@ -229,7 +229,7 @@ func WithMsgTTL(d time.Duration) interface{} {
 }
 
 // SendScheduleMsg submits a message delivered at given time
-func (q *DelayQueue) SendScheduleMsg(payload string, t time.Time, opts ...interface{}) error {
+func (q *DelayQueue) SendScheduleMsg(payload string, t time.Time, opts ...interface{}) (idStr string, err error) {
 	// parse options
 	retryCount := q.defaultRetryCount
 	for _, opt := range opts {
@@ -241,30 +241,33 @@ func (q *DelayQueue) SendScheduleMsg(payload string, t time.Time, opts ...interf
 		}
 	}
 	// generate id
-	idStr := uuid.Must(uuid.NewRandom()).String()
+	idStr = uuid.Must(uuid.NewRandom()).String()
 	now := time.Now()
 	// store msg
 	msgTTL := t.Sub(now) + q.msgTTL // delivery + q.msgTTL
-	err := q.redisCli.Set(q.genMsgKey(idStr), payload, msgTTL)
+	err = q.redisCli.Set(q.genMsgKey(idStr), payload, msgTTL)
 	if err != nil {
-		return fmt.Errorf("store msg failed: %v", err)
+		err = fmt.Errorf("store msg failed: %v", err)
+		return
 	}
 	// store retry count
 	err = q.redisCli.HSet(q.retryCountKey, idStr, strconv.Itoa(int(retryCount)))
 	if err != nil {
-		return fmt.Errorf("store retry count failed: %v", err)
+		err = fmt.Errorf("store retry count failed: %v", err)
+		return
 	}
 	// put to pending
 	err = q.redisCli.ZAdd(q.pendingKey, map[string]float64{idStr: float64(t.Unix())})
 	if err != nil {
-		return fmt.Errorf("push to pending failed: %v", err)
+		err = fmt.Errorf("push to pending failed: %v", err)
+		return
 	}
 	q.reportEvent(NewMessageEvent, 1)
-	return nil
+	return
 }
 
 // SendDelayMsg submits a message delivered after given duration
-func (q *DelayQueue) SendDelayMsg(payload string, duration time.Duration, opts ...interface{}) error {
+func (q *DelayQueue) SendDelayMsg(payload string, duration time.Duration, opts ...interface{}) (string, error) {
 	t := time.Now().Add(duration)
 	return q.SendScheduleMsg(payload, t, opts...)
 }
@@ -379,7 +382,7 @@ func (q *DelayQueue) retry2Unack() (string, error) {
 	retryTime := time.Now().Add(q.maxConsumeDuration).Unix()
 	keys := []string{q.retryKey, q.unAckKey}
 	ret, err := q.eval(ready2UnackScript, keys, []interface{}{retryTime, q.retryKey, q.unAckKey})
-	if err == NilErr {
+	if errors.Is(err, NilErr) {
 		return "", NilErr
 	}
 	if err != nil {
@@ -394,7 +397,7 @@ func (q *DelayQueue) retry2Unack() (string, error) {
 
 func (q *DelayQueue) callback(idStr string) error {
 	payload, err := q.redisCli.Get(q.genMsgKey(idStr))
-	if err == NilErr {
+	if errors.Is(err, NilErr) {
 		return nil
 	}
 	if err != nil {
@@ -408,6 +411,10 @@ func (q *DelayQueue) callback(idStr string) error {
 		err = q.nack(idStr)
 	}
 	return err
+}
+
+func (q *DelayQueue) Remove(idStr string) error {
+	return q.callback(idStr)
 }
 
 func (q *DelayQueue) ack(idStr string) error {

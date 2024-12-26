@@ -33,7 +33,7 @@ func TestDelayQueue_consume(t *testing.T) {
 		WithFetchLimit(2)
 
 	for i := 0; i < size; i++ {
-		err := queue.SendDelayMsg(strconv.Itoa(i), 0, WithRetryCount(retryCount), WithMsgTTL(time.Hour))
+		_, err := queue.SendDelayMsg(strconv.Itoa(i), 0, WithRetryCount(retryCount), WithMsgTTL(time.Hour))
 		if err != nil {
 			t.Error(err)
 		}
@@ -86,7 +86,7 @@ func TestDelayQueueOnCluster(t *testing.T) {
 		WithConcurrent(1)
 
 	for i := 0; i < size; i++ {
-		err := queue.SendDelayMsg(strconv.Itoa(i), 0)
+		_, err := queue.SendDelayMsg(strconv.Itoa(i), 0)
 		if err != nil {
 			t.Error(err)
 		}
@@ -129,7 +129,7 @@ func TestDelayQueue_ConcurrentConsume(t *testing.T) {
 		WithConcurrent(4)
 
 	for i := 0; i < size; i++ {
-		err := queue.SendDelayMsg(strconv.Itoa(i), 0, WithRetryCount(retryCount), WithMsgTTL(time.Hour))
+		_, err := queue.SendDelayMsg(strconv.Itoa(i), 0, WithRetryCount(retryCount), WithMsgTTL(time.Hour))
 		if err != nil {
 			t.Error(err)
 		}
@@ -169,7 +169,7 @@ func TestDelayQueue_StopConsume(t *testing.T) {
 		return true
 	}).WithDefaultRetryCount(1)
 	for i := 0; i < size; i++ {
-		err := queue.SendDelayMsg(strconv.Itoa(i), 0)
+		_, err := queue.SendDelayMsg(strconv.Itoa(i), 0)
 		if err != nil {
 			t.Errorf("send message failed: %v", err)
 		}
@@ -200,7 +200,7 @@ func TestDelayQueue_AsyncConsume(t *testing.T) {
 	go func() {
 		for {
 			time.Sleep(time.Millisecond * 500)
-			err := queue.SendScheduleMsg(time.Now().String(), time.Now().Add(time.Second*1))
+			_, err := queue.SendScheduleMsg(time.Now().String(), time.Now().Add(time.Second*1))
 			if err != nil {
 				panic(err)
 			}
@@ -228,7 +228,7 @@ func TestDelayQueue_Massive_Backlog(t *testing.T) {
 		WithFetchLimit(0)
 
 	for i := 0; i < size; i++ {
-		err := q.SendDelayMsg(strconv.Itoa(i), 0, WithRetryCount(retryCount))
+		_, err := q.SendDelayMsg(strconv.Itoa(i), 0, WithRetryCount(retryCount))
 		if err != nil {
 			t.Error(err)
 		}
@@ -279,7 +279,6 @@ func TestDelayQueue_Massive_Backlog(t *testing.T) {
 	}
 }
 
-
 // consume should stopped after actual fetch count hits fetch limit
 func TestDelayQueue_FetchLimit(t *testing.T) {
 	redisCli := redis.NewClient(&redis.Options{
@@ -298,7 +297,7 @@ func TestDelayQueue_FetchLimit(t *testing.T) {
 		WithFetchLimit(uint(fetchLimit))
 
 	for i := 0; i < fetchLimit; i++ {
-		err := queue.SendDelayMsg(strconv.Itoa(i), 0, WithMsgTTL(time.Hour))
+		_, err := queue.SendDelayMsg(strconv.Itoa(i), 0, WithMsgTTL(time.Hour))
 		if err != nil {
 			t.Error(err)
 		}
@@ -311,7 +310,7 @@ func TestDelayQueue_FetchLimit(t *testing.T) {
 	}
 	// send new messages
 	for i := 0; i < fetchLimit; i++ {
-		err := queue.SendDelayMsg(strconv.Itoa(i), 0, WithMsgTTL(time.Hour))
+		_, err := queue.SendDelayMsg(strconv.Itoa(i), 0, WithMsgTTL(time.Hour))
 		if err != nil {
 			t.Error(err)
 		}
@@ -324,7 +323,7 @@ func TestDelayQueue_FetchLimit(t *testing.T) {
 	if len(ids2) > 0 {
 		t.Error("should get 0 message, after hitting fetch limit")
 	}
-	
+
 	// consume
 	for _, id := range ids1 {
 		queue.callback(id)
@@ -365,7 +364,7 @@ func TestDelayQueue_ScriptPreload(t *testing.T) {
 		WithScriptPreload(true)
 
 	for i := 0; i < size; i++ {
-		err := queue.SendDelayMsg(strconv.Itoa(i), 0, WithRetryCount(retryCount), WithMsgTTL(time.Hour))
+		_, err := queue.SendDelayMsg(strconv.Itoa(i), 0, WithRetryCount(retryCount), WithMsgTTL(time.Hour))
 		if err != nil {
 			t.Error(err)
 		}

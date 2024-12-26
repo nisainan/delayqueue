@@ -64,14 +64,14 @@ func main() {
 	tick := time.Tick(time.Minute)
 	go func() {
 		for range tick {
-			minutes := len(listener.List)-1
+			minutes := len(listener.List) - 1
 			fmt.Printf("%d: %#v", minutes, listener.List[minutes])
 		}
 	}()
 
 	// start test
 	for i := 0; i < 10; i++ {
-		err := queue.SendDelayMsg(strconv.Itoa(i), 0, delayqueue.WithRetryCount(3))
+		_, err := queue.SendDelayMsg(strconv.Itoa(i), 0, delayqueue.WithRetryCount(3))
 		if err != nil {
 			panic(err)
 		}

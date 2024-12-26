@@ -24,7 +24,7 @@ func TestMonitor_get_status(t *testing.T) {
 	monitor := NewMonitor("test", redisCli).WithLogger(logger)
 
 	for i := 0; i < size; i++ {
-		err := queue.SendDelayMsg(strconv.Itoa(i), 0)
+		_, err := queue.SendDelayMsg(strconv.Itoa(i), 0)
 		if err != nil {
 			t.Error(err)
 		}
@@ -111,7 +111,7 @@ func TestMonitor_listener1(t *testing.T) {
 	monitor.ListenEvent(profile)
 
 	for i := 0; i < size; i++ {
-		err := queue.SendDelayMsg(strconv.Itoa(i), 0)
+		_, err := queue.SendDelayMsg(strconv.Itoa(i), 0)
 		if err != nil {
 			t.Error(err)
 		}
@@ -153,7 +153,7 @@ func TestMonitor_listener2(t *testing.T) {
 	monitor.ListenEvent(profile)
 
 	for i := 0; i < size; i++ {
-		err := queue.SendDelayMsg(strconv.Itoa(i), 0)
+		_, err := queue.SendDelayMsg(strconv.Itoa(i), 0)
 		if err != nil {
 			t.Error(err)
 		}
