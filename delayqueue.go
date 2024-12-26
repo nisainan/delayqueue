@@ -417,8 +417,8 @@ func (q *DelayQueue) callback(idStr string) error {
 }
 
 func (q *DelayQueue) Remove(idStr string) error {
-	//return q.callback(idStr)
-	return q.ack(idStr)
+	_ = q.redisCli.ZRem(q.pendingKey, []string{idStr})
+	return q.callback(idStr)
 }
 
 func (q *DelayQueue) ack(idStr string) error {
