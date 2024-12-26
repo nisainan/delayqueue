@@ -42,3 +42,8 @@ func (p *Publisher) SendScheduleMsg(payload string, t time.Time, opts ...interfa
 func (p *Publisher) SendDelayMsg(payload string, duration time.Duration, opts ...interface{}) (string, error) {
 	return p.inner.SendDelayMsg(payload, duration, opts...)
 }
+
+// Remove removes a message
+func (p *Publisher) Remove(id string) error {
+	return p.inner.Remove(id)
+}
