@@ -29,7 +29,7 @@ func TestPublisher(t *testing.T) {
 	publisher := NewPublisher("test", redisCli).WithLogger(logger)
 
 	for i := 0; i < size; i++ {
-		err := publisher.SendDelayMsg(strconv.Itoa(i), 0, WithRetryCount(retryCount), WithMsgTTL(time.Hour))
+		_, err := publisher.SendDelayMsg(strconv.Itoa(i), 0, WithRetryCount(retryCount), WithMsgTTL(time.Hour))
 		if err != nil {
 			t.Error(err)
 		}

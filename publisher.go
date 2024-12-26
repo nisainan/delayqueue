@@ -34,11 +34,11 @@ func (p *Publisher) WithLogger(logger *log.Logger) *Publisher {
 }
 
 // SendScheduleMsg submits a message delivered at given time
-func (p *Publisher) SendScheduleMsg(payload string, t time.Time, opts ...interface{}) error {
+func (p *Publisher) SendScheduleMsg(payload string, t time.Time, opts ...interface{}) (string, error) {
 	return p.inner.SendScheduleMsg(payload, t, opts...)
 }
 
 // SendDelayMsg submits a message delivered after given duration
-func (p *Publisher) SendDelayMsg(payload string, duration time.Duration, opts ...interface{}) error {
+func (p *Publisher) SendDelayMsg(payload string, duration time.Duration, opts ...interface{}) (string, error) {
 	return p.inner.SendDelayMsg(payload, duration, opts...)
 }
